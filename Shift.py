@@ -2,34 +2,35 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class ShiftRegister:
-    def __init__(self, size):
+    def __init__(self, size=4):
         self.size = size
-        self.reg = np.zeros(size, dtype=float)  # Initialize register with floating-point values
-        self.outputs = []  # Track serial outputs over time
+        self.reg = np.zeros(size, dtype=int)  # Initialize register here
     
-    def shift(self, input_val):
-        self.reg = np.roll(self.reg, 1)  # Shift right
-        self.reg[0] = input_val          # Insert new value at left
-        output = self.reg[-1]            # Rightmost value = output
-        self.outputs.append(output)      # Save output for plotting
-        return output
+    def shift(self, data_in, shift_enable=True):
+        if shift_enable:
+            self.reg = np.roll(self.reg, 1)
+            self.reg[0] = data_in
+        return self.reg[-1]  # Serial output
+    
+    def reset(self):
+        self.reg = np.zeros(self.size, dtype=int)
 
-# Example Usage
-if __name__ == "__main__":
-    sr = ShiftRegister(size=3)  # 3-stage register
-    input_sequence = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0]
-    
-    # Process input sequence
-    for val in input_sequence:
-        sr.shift(val)
-    
-    # Plot the serial output over clock cycles
-    plt.figure(figsize=(10, 4))
-    plt.plot(sr.outputs, marker='o', linestyle='-', color='b', label='Serial Output')
-    plt.title("Shift Register Output Over Time")
-    plt.xlabel("Clock Cycle")
-    plt.ylabel("Output Value")
-    plt.xticks(range(len(sr.outputs)), range(1, len(sr.outputs) + 1))
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.legend()
-    plt.show()
+# Testbench
+sr = ShiftRegister()
+inputs = [1, 0, 1, 0]  # Test sequence
+outputs = []
+
+print("Shift Register Simulation:")
+for bit in inputs:
+    outputs.append(sr.shift(bit))
+    print(f"Input: {bit}, State: {sr.reg}, Output: {outputs[-1]}")
+
+# Plot
+plt.figure(figsize=(8, 4))
+plt.step(range(len(outputs)), outputs, where='post', label='Serial Output')
+plt.title("Shift Register Output")
+plt.xlabel("Clock Cycle")
+plt.ylabel("Value")
+plt.legend()
+plt.grid(True)
+plt.show()
